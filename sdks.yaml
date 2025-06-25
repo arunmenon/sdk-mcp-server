@@ -1,0 +1,58 @@
+# SDK Configuration File
+# Defines how to download and index various AI/ML SDKs
+
+sdks:
+  openai_agents:
+    name: "OpenAI Agents SDK"
+    description: "OpenAI's official agents framework for building AI applications"
+    source:
+      type: "github"
+      repo: "openai/openai-agents-python"
+      branch: "main"
+      path: "src"
+    file_patterns:
+      - "**/*.py"
+    exclude_patterns:
+      - "**/test_*.py"
+      - "**/__pycache__/**"
+      - "**/tests/**"
+    tools:
+      prefix: "openai_agents"
+      descriptions:
+        list_files: "List all OpenAI Agents SDK source files available for browsing"
+        get_source: "Read the source code of a specific OpenAI Agents SDK file"
+        search_code: "Search OpenAI Agents SDK source code for specific terms, methods, or patterns"
+        get_class: "Extract complete class definition from OpenAI Agents SDK"
+        find_examples: "Find code examples and usage patterns in OpenAI Agents SDK"
+
+  google_adk:
+    name: "Google ADK"
+    description: "Google's Agentic Development Kit for building AI agents"
+    source:
+      type: "github"
+      repo: "google/adk-python"
+      branch: "main"
+      path: "src/google/adk"
+    file_patterns:
+      - "**/*.py"
+    exclude_patterns:
+      - "**/test_*.py"
+      - "**/__pycache__/**"
+    tools:
+      prefix: "google_adk"
+      descriptions:
+        list_files: "List all Google ADK source files available for browsing"
+        get_source: "Read the source code of a specific Google ADK file"
+        search_code: "Search Google ADK source code for specific terms, methods, or patterns"
+        get_class: "Extract complete class definition from Google ADK"
+        find_examples: "Find code examples and usage patterns in Google ADK"
+
+  # Additional SDKs can be added here following the same structure
+  # anthropic_sdk:
+  #   name: "Anthropic SDK"
+  #   description: "Anthropic's AI SDK"
+  #   source:
+  #     type: "github"
+  #     repo: "anthropic/anthropic-sdk-python"
+  #     branch: "main"
+  #     path: "src"
