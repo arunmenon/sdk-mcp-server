@@ -1,16 +1,17 @@
-# OpenAI Agents SDK MCP Server
+# SDK MCP Server
 
-A Model Context Protocol (MCP) server that provides direct access to OpenAI Agents Python SDK source code for Claude Code and other AI assistants.
+A configurable Model Context Protocol (MCP) server that provides searchable access to multiple AI/ML SDK documentation and source code. Currently supports OpenAI Agents SDK and Google ADK, with easy extensibility for additional SDKs.
 
 ## Purpose
 
-When working with OpenAI's Agents SDK, you often need to:
-- Understand how classes like `Agent`, `Tool`, and `Handoff` work internally
+When working with AI/ML SDKs, you often need to:
+- Understand how classes and methods work internally across different SDKs
+- Compare implementations between different frameworks
 - Find the right method signatures and parameters
 - See real implementation examples
 - Debug issues by examining SDK source code
 
-This MCP server gives Claude Code instant access to the entire SDK source, making it a powerful development companion.
+This MCP server gives AI assistants like Claude instant access to multiple SDK sources, making it a powerful development companion for multi-SDK projects.
 
 ## Quick Start
 
@@ -19,20 +20,21 @@ This MCP server gives Claude Code instant access to the entire SDK source, makin
 pip install -r requirements.txt
 ```
 
-2. **Download SDK source**:
+2. **Download SDK sources**:
 ```bash
 python src/download_sdk.py
 ```
+This will download all configured SDKs from `sdks.yaml`.
 
 3. **Configure in Claude Desktop**:
 
-Add to your settings:
+Add to your Claude Desktop configuration:
 ```json
 {
   "mcpServers": {
-    "openai-agents-sdk": {
+    "sdk-mcp-server": {
       "command": "python",
-      "args": ["/absolute/path/to/openai-agents-mcp/src/server.py"]
+      "args": ["/absolute/path/to/sdk-mcp-server/src/server.py"]
     }
   }
 }
@@ -40,94 +42,131 @@ Add to your settings:
 
 ## Available Tools
 
-### 🔍 `openai_agents_search_code`
-Search the entire SDK for specific terms, methods, or patterns.
+Each configured SDK gets its own set of tools with the SDK prefix. Currently configured:
 
-**Example uses**:
-- "How does handoff work?" → Search for "handoff"
-- "Find streaming examples" → Search for "stream"
-- "Where is Tool.register defined?" → Search for "def register"
+### OpenAI Agents SDK Tools (prefix: `openai_agents_`)
 
-### 📄 `openai_agents_get_source`
-Read the complete source code of any SDK file.
+- **`openai_agents_list_files()`** - List all available OpenAI SDK source files
+- **`openai_agents_get_source(filename)`** - Get source code of specific file
+- **`openai_agents_search_code(query)`** - Search for terms, methods, or patterns
+- **`openai_agents_get_class(class_name)`** - Extract complete class definition
+- **`openai_agents_find_examples(topic)`** - Find usage examples and patterns
 
-**Example uses**:
-- Get Agent class: `openai_agents_get_source("agents_agent.md")`
-- Get Tool implementation: `openai_agents_get_source("agents_tool.md")`
+### Google ADK Tools (prefix: `google_adk_`)
 
-### 🏛️ `openai_agents_get_class`
-Extract a complete class definition with all its methods.
+- **`google_adk_list_files()`** - List all available Google ADK source files
+- **`google_adk_get_source(filename)`** - Get source code of specific file
+- **`google_adk_search_code(query)`** - Search for terms, methods, or patterns
+- **`google_adk_get_class(class_name)`** - Extract complete class definition
+- **`google_adk_find_examples(topic)`** - Find usage examples and patterns
 
-**Example uses**:
-- "Show me the Agent class" → `openai_agents_get_class("Agent")`
-- "How is Tool implemented?" → `openai_agents_get_class("Tool")`
+### Cross-SDK Tools (coming soon)
 
-### 📁 `openai_agents_list_files`
-Browse all available SDK source files.
-
-**Example uses**:
-- "What files are in the SDK?"
-- "Show me all model provider files"
-
-### 💡 `openai_agents_find_examples`
-Find usage examples and patterns for specific features.
-
-**Example uses**:
-- "Show tool examples" → `openai_agents_find_examples("tool")`
-- "Find handoff patterns" → `openai_agents_find_examples("handoff")`
+- **`list_available_sdks()`** - Show all configured SDKs
+- **`search_all_sdks(query)`** - Search across all SDKs simultaneously
+- **`compare_implementations(concept, sdk_ids)`** - Compare similar concepts across SDKs
 
 ## Usage Examples
 
-### When building an agent:
+### Comparing SDKs:
 ```
-You: "How do I create an agent with tools in OpenAI SDK?"
-Claude: [Uses openai_agents_get_class("Agent") and openai_agents_find_examples("tool")]
-*Shows you the Agent class constructor and tool registration examples*
-```
-
-### When debugging:
-```
-You: "Why is my handoff not working?"
-Claude: [Uses openai_agents_search_code("handoff") and openai_agents_get_source("agents_handoffs.md")]
-*Examines the handoff implementation to help debug*
+You: "How do OpenAI and Google handle agent creation differently?"
+Claude: [Uses openai_agents_get_class("Agent") and google_adk_get_class("Agent")]
+*Compares the different approaches and APIs*
 ```
 
-### When learning:
+### Learning a new SDK:
 ```
-You: "Explain how the OpenAI SDK handles streaming"
-Claude: [Uses openai_agents_search_code("stream") and finds relevant implementations]
-*Explains based on actual SDK code*
+You: "Show me how to use tools in Google ADK"
+Claude: [Uses google_adk_search_code("tool") and google_adk_find_examples("tool")]
+*Explains Google's approach with real examples*
 ```
+
+### Debugging across SDKs:
+```
+You: "Why does handoff work in OpenAI but not in my Google ADK code?"
+Claude: [Searches both SDKs for handoff implementations]
+*Identifies the differences and helps fix the issue*
+```
+
+## Configuration
+
+### Adding a New SDK
+
+Edit `sdks.yaml` to add new SDKs:
+
+```yaml
+sdks:
+  your_sdk:
+    name: "Your SDK Name"
+    description: "Description of the SDK"
+    source:
+      type: "github"
+      repo: "org/repo-name"
+      branch: "main"
+      path: "src"
+    file_patterns:
+      - "**/*.py"
+    tools:
+      prefix: "your_sdk"
+      descriptions:
+        list_files: "List all Your SDK source files"
+        # ... other tool descriptions
+```
+
+### Supported Source Types
+
+- **GitHub repositories** - Public repos with Python/TypeScript code
+- **Direct URLs** (coming soon) - ZIP/TAR archives
+- **Local paths** (coming soon) - Local SDK installations
 
 ## File Structure
 
-All SDK files are stored flat in the `data/` directory:
-- `agents_agent.md` - Core Agent class
-- `agents_tool.md` - Tool system
-- `agents_handoffs.md` - Handoff functionality
-- `agents_models_*.md` - Model providers
-- `agents_voice_*.md` - Voice capabilities
-- And 70+ more files...
+```
+sdk-mcp-server/
+├── src/
+│   ├── server.py           # Main MCP server implementation
+│   └── download_sdk.py     # SDK downloader and indexer
+├── data/                   # Downloaded SDK files (git-ignored)
+│   ├── openai_agents/      # OpenAI SDK files
+│   └── google_adk/         # Google ADK files
+├── sdks.yaml              # SDK configuration
+├── requirements.txt       # Python dependencies
+└── run_server.sh         # Server startup script
+```
 
 ## Updating
 
-To get the latest SDK source:
+To get the latest SDK sources:
 ```bash
 python src/download_sdk.py
 ```
 
-This fetches the latest code from the `openai/openai-agents-python` repository.
+This fetches the latest code from all configured SDKs in `sdks.yaml`.
 
 ## Tips for Best Results
 
-1. **Be specific** when asking about SDK features
-2. **Mention "OpenAI Agents SDK"** or "OpenAI SDK" in your questions
-3. **Reference specific classes** like Agent, Tool, Handoff
-4. **Ask for examples** when learning new features
+1. **Specify the SDK** - Mention which SDK you're working with
+2. **Use SDK prefixes** - Each tool is prefixed with the SDK name
+3. **Compare implementations** - Ask about differences between SDKs
+4. **Request examples** - Each SDK has example-finding capabilities
 
 ## Why This Helps
 
-- **Instant answers** - No need to browse GitHub or docs
-- **Accurate information** - Direct from source code
-- **Context-aware** - Claude understands the full implementation
-- **Debugging aid** - See exactly how things work internally
+- **Multi-SDK support** - Work with multiple frameworks seamlessly
+- **Instant answers** - No need to browse multiple repos or docs
+- **Direct comparisons** - See how different SDKs solve similar problems
+- **Accurate information** - Always from the latest source code
+- **Context-aware** - AI understands full implementations across SDKs
+
+## Contributing
+
+To add support for a new SDK:
+
+1. Add configuration to `sdks.yaml`
+2. Test with `python src/download_sdk.py`
+3. Submit a pull request
+
+## License
+
+MIT License - see LICENSE file for details.
